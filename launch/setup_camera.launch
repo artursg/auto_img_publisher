@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+      <node pkg="img_bucket" type="img_bucket" name="img_bucket" output="screen">
+    <!--<param name="fixed_frame" value = "odom"/>
+    <param name="use_alpha_beta" value="true"/>
+    <param name="max_iterations" value="10"/> -->
+        </node>
+      
+      <node pkg="pylon_camera" type="pylon_camera_node" name="pylon_camera_node" output="screen">
+    <param name="frame_rate" value = "10"/>
+    <param name="image_encoding" value="rgb8"/>
+         </node>
+
+
+</launch>
