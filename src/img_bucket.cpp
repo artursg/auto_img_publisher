@@ -23,8 +23,8 @@ int main(int argc, char** argv)
         image_transport::ImageTransport imgTrs(nh);
         ros::Publisher pub = nh.advertise<std_msgs::Float64>("test_topic", 100);
         image_transport::Publisher img_pub = imgTrs.advertise("bucket", 1);
-        camera_info_manager_
-        //camera_info_manager (new camera_info_manager::CameraInfoManager(nh))
+        boost::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_;
+        cinfo_(new camera_info_manager::CameraInfoManager(camera_nh_));
         
         std::vector<cv::String> fn;
         glob("/home/neu/pylon_camera/Validation/AprilTags/27/*.jpg",fn, false);
