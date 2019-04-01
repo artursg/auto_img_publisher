@@ -8,6 +8,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/opencv.hpp>
 #include "std_msgs/Float64.h"
+#include <camera_info_manager.h>
 
 using namespace cv;
 /*void msgCallback(const sensor_msgs::Image::ConstPtr& msg)
@@ -22,9 +23,9 @@ int main(int argc, char** argv)
         image_transport::ImageTransport imgTrs(nh);
         ros::Publisher pub = nh.advertise<std_msgs::Float64>("test_topic", 100);
         image_transport::Publisher img_pub = imgTrs.advertise("bucket", 1);
-        //ros::Publisher pub2 = nh.advertise<sensor_msgs::Image>("image_topic", 100);
-        //ros::Subscriber cam_sub = nh.subscribe("/usb_cam/image_raw",100,msgCallback);
-        //ros::spin();
+        camera_info_manager_
+        //camera_info_manager (new camera_info_manager::CameraInfoManager(nh))
+        
         std::vector<cv::String> fn;
         glob("/home/neu/pylon_camera/Validation/AprilTags/27/*.jpg",fn, false);
         std::vector<Mat> images;
@@ -33,11 +34,6 @@ int main(int argc, char** argv)
         images.push_back(imread(fn[i]));
         ros::Rate rate(10);
 
-        //std_msgs::Float64 msg;
-      
-
-
-        //msg.data = static_cast<float>(count);
 
         while (ros::ok())
         {
@@ -47,11 +43,19 @@ int main(int argc, char** argv)
             header.frame_id = "";
 
             sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", *it).toImageMsg();
+            
+
+            //sensor_msgs::CameraInfoPtr cam_info(new sensor_msgs::CameraInfo(camera_info_manager_->getCameraInfo()));
+            sensor_msgs::CameraInfoPtr cam_info(new sensor_msgs::CameraInfo(camera_info_mng))
+            //cam_info->header.stamp = img_raw_msg_.header.stamp;
+            // Publish via image_transport
+            //img_raw_pub_.publish(img_raw_msg_, *cam_info);
+            
             img_pub.publish(msg);
-            //ros::Duration(1).sleep();
+            ros::Duration(1).sleep();
           }
         //  pub.publish(msg);
-          ros::spin();
+          ros::spinOnce();
           rate.sleep();
         }
 
