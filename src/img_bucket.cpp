@@ -42,7 +42,7 @@ int main(int argc, char** argv)
             std_msgs::Header header;
             header.frame_id = "";
             sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", *it).toImageMsg();
-            sensor_msgs::CameraInfoPtr cam_msg;
+            sensor_msgs::CameraInfoPtr cam_msg(new sensor_msgs::CameraInfo());
             cam_msg->header.stamp = ros::Time::now();
             cam_msg->header.frame_id = "basler";
             cam_msg->height = 1024;
