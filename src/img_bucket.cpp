@@ -9,14 +9,11 @@
 #include <opencv2/opencv.hpp>
 #include "std_msgs/Float64.h"
 
-using namespace cv;
-
 int main(int argc, char** argv)
 {
         ros::init(argc,argv,"img_bucket");
         ros::NodeHandle nh;
         image_transport::ImageTransport imgTrs(nh);
-       // image_transport::Publisher img_pub = imgTrs.advertise("bucket/image_raw", 1);
         image_transport::CameraPublisher cam_pub = imgTrs.advertiseCamera("image_raw",1);
     
         float dist[5] = {-0.011276, -0.002467, -0.004967, 0.033951, 0.000000};
@@ -28,16 +25,14 @@ int main(int argc, char** argv)
 
         std::vector<cv::String> fn;
         glob("/home/neu/pylon_camera/Validation/AprilTags/27/*.jpg",fn, false);
-        std::vector<Mat> images;
+        std::vector<cv::Mat> images;
         size_t count = fn.size(); 
         for (size_t i=0;i<count;i++)
-        images.push_back(imread(fn[i]));
+        images.push_back(cv::imread(fn[i]));
         ros::Rate rate(10);
-
-
         while (ros::ok())
         {
-          for (std::vector<Mat>::iterator it = images.begin(); it !=images.end(); it++)
+          for (std::vector<cv::Mat>::iterator it = images.begin(); it !=images.end(); it++)
           {
             std_msgs::Header header;
             header.frame_id = "";
