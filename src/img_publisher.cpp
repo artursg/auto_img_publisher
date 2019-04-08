@@ -9,22 +9,29 @@
 #include <opencv2/opencv.hpp>
 #include "std_msgs/Float64.h"
 
+
 int main(int argc, char** argv)
 {
-        ros::init(argc,argv,"img_bucket");
+        ros::init(argc,argv,"img_streaming");
         ros::NodeHandle nh;
         image_transport::ImageTransport imgTrs(nh);
         image_transport::CameraPublisher cam_pub = imgTrs.advertiseCamera("image_raw",1);
     
         float dist[5] = {-0.011276, -0.002467, -0.004967, 0.033951, 0.000000};
         float camera[9] = { 2677.117911, 0.000000, 937.740481, 0.000000, 2638.726872, 455.023139, 0.000000, 0.000000, 1.000000 };
-
         float rect[9]= {1.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 1.000000 };
-        
         float proj[12] = {2615.817139, 0.000000, 952.909396, 0.000000, 0.000000, 2657.769043, 453.327589, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000 };
 
         std::vector<cv::String> fn;
-        glob("/home/neu/pylon_camera/Validation/AprilTags/27/*.jpg",fn, false);
+        std::string path;
+        if (nh.getParam ("path",path))
+        {
+          cv::glob(path,fn, false);
+        }
+        else
+        {
+           cv::glob("/home/neu/pylon_camera/Validation/AprilTags/27/*.jpg",fn, false);
+        }
         std::vector<cv::Mat> images;
         size_t count = fn.size(); 
         for (size_t i=0;i<count;i++)
@@ -54,12 +61,11 @@ int main(int argc, char** argv)
               cam_msg->K[i] = camera[i];
               cam_msg->R[i] = rect[i];
             }
-
-                for(int i=0; i<12; i++)
+            
+            for(int i=0; i<12; i++)
             {
                 cam_msg->P[i] = proj[i];
             }
-
             cam_pub.publish(msg, cam_msg);
             ros::Duration(1).sleep();
           }
