@@ -1,8 +1,4 @@
-#include "ros/ros.h"
 #include "sensor_msgs/Image.h"
-#include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/image_encodings.h>
-#include <image_transport/image_transport.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/core/core.hpp>
@@ -10,16 +6,18 @@
 #include "std_msgs/Float64.h"
 #include "img_publisher.h"
 
-Img_stream::Img_stream()
+Img_stream::Img_stream(): imgTrs(nh)
 {
   cam_pub = imgTrs.advertiseCamera("image_raw",1);
 }
 
-bool Img_stream::load_img(std::string path, std::string filter, std::vector<cv::Mat> &images)
+bool Img_stream::load_img(std::string filter, std::vector<cv::Mat> &images)
 { 
   // FIND PARAMETER NAME I.E> Wheelbase
- // nh.param(param_name, path, default_path);
+  std::string path;
+  nh.param(param_name, path, default_path);
   cv::glob(path + filter, fn, false);
+  ROS_INFO_STREAM(path+filter);
   size_t count = fn.size();
   bool b = false;
   for (size_t i=0;i<count;i++)
@@ -47,8 +45,7 @@ int main(int argc, char** argv)
         ros::init(argc,argv,"img_streaming");
         std::vector<cv::Mat> images;
         Img_stream img_str;
-        
-        if (img_str.load_img("path","filter", images)) 
+        if (img_str.load_img(img_str.default_filter, images)) 
         {
              ros::Rate rate(10);
             while (ros::ok())
