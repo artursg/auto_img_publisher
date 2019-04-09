@@ -22,7 +22,7 @@ class Img_stream {
     std::string param_name = "path"; 
 
     private:
-    ros::NodeHandle nh;
+    ros::NodeHandle nh("~");
     image_transport::ImageTransport imgTrs;
     
    

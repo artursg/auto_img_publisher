@@ -15,10 +15,19 @@ bool Img_stream::load_img(std::string filter, std::vector<cv::Mat> &images)
 { 
   // FIND PARAMETER NAME I.E> Wheelbase
   std::string path;
-  bool t = nh.param(param_name, path, default_path);
-  ROS_INFO_STREAM("t = "<<t <<" path "<<path);
-  cv::glob(path + filter, fn, false);
-  ROS_INFO_STREAM(path+filter);
+  bool t = nh.getParam(param_name, path);
+  if (t)
+  {
+    cv::glob(path + filter, fn, false);
+    ROS_INFO_STREAM("path + filter = " << path+filter);
+
+  }
+  else
+  {
+    cv::glob(default_path + filter, fn, false);
+    ROS_INFO_STREAM("default_path + filter = " << default_path+filter);
+  }
+  
   size_t count = fn.size();
   bool b = false;
   for (size_t i=0;i<count;i++)
