@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(img_publisher)
+project(img_bucket)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -136,7 +136,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(img_streaming src/img_publisher.cpp)
+add_executable(img_bucket src/img_bucket.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -149,7 +149,7 @@ add_executable(img_streaming src/img_publisher.cpp)
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(img_streaming  ${OpenCV_LIBS} ${catkin_LIBRARIES} )
+ target_link_libraries(img_bucket  ${OpenCV_LIBS} ${catkin_LIBRARIES} )
 
 #############
 ## Install ##
