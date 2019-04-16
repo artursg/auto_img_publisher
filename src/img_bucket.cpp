@@ -6,7 +6,8 @@
 #include "std_msgs/Float64.h"
 #include "img_bucket.h"
 
-Img_stream::Img_stream(): imgTrs(nh)
+
+Img_stream::Img_stream():imgTrs(nh)
 {
   cam_pub = imgTrs.advertiseCamera("image_raw",1);
 }
@@ -55,6 +56,7 @@ int main(int argc, char** argv)
         ros::init(argc,argv,"img_bucket");
         std::vector<cv::Mat> images;
         Img_stream img_str;
+        
         if (img_str.load_img(img_str.default_filter, images)) 
         {
              ros::Rate rate(10);
