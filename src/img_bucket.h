@@ -7,7 +7,6 @@
 #include <image_transport/image_transport.h>
 #include "ros/package.h"
 
-//ros::NodeHandle nh("img_stream");
 
 class Img_stream {
     public:
@@ -30,9 +29,5 @@ class Img_stream {
    
 
 };
-
-
-
-
 
 #endif // IMG_BUCKET
