@@ -6,93 +6,76 @@
 #include "std_msgs/Float64.h"
 #include "img_bucket.h"
 
-Img_stream::Img_stream() : imgTrs(nh)
+img_bucket::img_bucket()
 {
-  cam_pub = imgTrs.advertiseCamera("image_raw", 1);
+  cam_pub = NULL;
+  i_current = 0;
+  // fill fake camera info
+  fake_camera_info.height = 1024;
+  fake_camera_info.width = 1280;
+  fake_camera_info.distortion_model = "plumb_bob";
+  fake_camera_info.D.resize(6);
+  for (int i = 0; i < 5; i++)
+  {
+    fake_camera_info.D[i] = dist[i];
+  }
+  for (int i = 0; i < 9; i++)
+  {
+    fake_camera_info.K[i] = camera[i];
+    fake_camera_info.R[i] = rect[i];
+  }
+  for (int i = 0; i < 12; i++)
+  {
+    fake_camera_info.P[i] = proj[i];
+  }
 }
 
-bool Img_stream::load_img(std::string filter, std::vector<cv::Mat> &images)
+void img_bucket::load_images()
 {
-  std::string path;
-  bool t = nh.getParam(ros::this_node::getName() + '/' + param_name, path);
-  if (t)
+  std::string location, filter;
+  ros::param::param<std::string>("bucket_location", location, default_location);
+  ros::param::param<std::string>("extension_filter", filter, default_filter);
+  ROS_INFO("Looking for images (%s) in folder:  %s", filter.c_str(), location.c_str());
+  cv::glob(location + filter, file_names, false);
+  for (auto it = file_names.begin(); it != file_names.end(); it++)
   {
-    cv::glob(path + filter, fn, false);
-    ROS_INFO_STREAM("path + filter = " << path + filter);
-  }
-  else
-  {
-    cv::glob(default_path + filter, fn, false);
-    ROS_INFO_STREAM("default_path + filter = " << default_path + filter);
-  }
-
-  size_t count = fn.size();
-  bool b = false;
-  for (size_t i = 0; i < count; i++)
-  {
-    cv::Mat src = cv::imread(fn[i]);
+    cv::Mat src = cv::imread(*it);
     if (!src.data)
-    {
-      ROS_WARN("Couldnt read %s", fn[i]);
-    }
+      ROS_WARN("Could not read %s", *it);
     else
-    {
-      images.push_back(cv::imread(fn[i]));
-      if (i == count - 1)
-        b = true;
-    }
+      file_data.push_back(cv::imread(*it));
   }
-  return b;
+}
+
+bool img_bucket::publish_next()
+{
+  if (i_current == file_names.size())
+    return false;
+  sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", file_data[i_current]).toImageMsg();
+  sensor_msgs::CameraInfoPtr cam_msg = boost::shared_ptr<sensor_msgs::CameraInfo>(new sensor_msgs::CameraInfo(fake_camera_info));
+  cam_msg->header.stamp = ros::Time::now();
+  cam_msg->header.frame_id = file_names[i_current];
+  cam_pub->publish(msg, cam_msg);
+  i_current++;
+  return true;
 }
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "img_bucket");
-  std::vector<cv::Mat> images;
-  Img_stream img_str;
-
-  if (img_str.load_img(img_str.default_filter, images))
+  ros::NodeHandle nh("img_bucket");
+  img_bucket img_str;
+  img_str.load_images();
+  image_transport::ImageTransport imgTrs(nh);
+  image_transport::CameraPublisher cam_pub;
+  cam_pub = imgTrs.advertiseCamera("image_raw", 1);
+  img_str.set_cam_pub(&cam_pub);
+  ros::Rate rate(1);
+  while (ros::ok())
   {
-    ros::Rate rate(10);
-    while (ros::ok())
-    {
-      for (std::vector<cv::Mat>::iterator it = images.begin(); it != images.end(); it++)
-      {
-        std_msgs::Header header;
-        header.frame_id = "";
-        sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", *it).toImageMsg();
-        sensor_msgs::CameraInfoPtr cam_msg(new sensor_msgs::CameraInfo());
-        cam_msg->header.stamp = ros::Time::now();
-        cam_msg->header.frame_id = "basler";
-        cam_msg->height = 1024;
-        cam_msg->width = 1280;
-        cam_msg->distortion_model = "plumb_bob";
-
-        for (int i = 0; i < 5; i++)
-        {
-          cam_msg->D[i] = img_str.dist[i];
-        }
-
-        for (int i = 0; i < 9; i++)
-        {
-          cam_msg->K[i] = img_str.camera[i];
-          cam_msg->R[i] = img_str.rect[i];
-        }
-
-        for (int i = 0; i < 12; i++)
-        {
-          cam_msg->P[i] = img_str.proj[i];
-        }
-        img_str.cam_pub.publish(msg, cam_msg);
-        ros::Duration(1).sleep();
-      }
-      ros::spinOnce();
-      rate.sleep();
-    }
+    if (!img_str.publish_next())
+      break;
+    ros::spinOnce();
+    rate.sleep();
   }
-  else
-  {
-    ROS_INFO_STREAM("Failed to load images. Exit program");
-  }
-  return 0;
 }
