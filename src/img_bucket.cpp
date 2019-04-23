@@ -33,8 +33,7 @@ bool Img_stream::load_img(std::string filter, std::vector<cv::Mat> &images)
     cv::Mat src = cv::imread(fn[i]);
     if (!src.data)
     {
-      ROS_INFO_STREAM("PROBLEM LOADING IMAGES!");
-      b = false;
+      ROS_WARN("Couldnt read %s", fn[i]);
     }
     else
     {
